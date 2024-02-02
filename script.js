@@ -37,18 +37,83 @@ function handleClick(e) {
 }
 
 function computerMove() {
-    const emptyCells = cells.filter(cell => !cell.textContent);
-    const randomIndex = Math.floor(Math.random() * emptyCells.length);
-    const computerCell = emptyCells[randomIndex];
-
-    if (computerCell) {
-        computerCell.textContent = 'O';
-        computerCell.classList.add('O');
-        checkWin();
-        currentPlayer = 'X';
-        updateMessage();
+    const bestMove = minimax(board, currentPlayer);
+    cells[bestMove].textContent = currentPlayer;
+    cells[bestMove].classList.add(currentPlayer);
+    checkWin();
+    currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+    updateMessage();
+  }
+  
+  function minimax(board, player) {
+    const availableCells = [];
+    for (let i = 0; i < 9; i++) {
+      if (!cells[i].textContent) {
+        availableCells.push(i);
+      }
     }
-}
+  
+    if (checkWinner('X')) {
+      return -10;
+    } else if (checkWinner('O')) {
+      return 10;
+    } else if (availableCells.length === 0) {
+      return 0;
+    }
+  
+    let bestScore;
+    let bestMove;
+  
+    if (player === 'O') {
+      bestScore = -Infinity;
+      for (const move of availableCells) {
+        cells[move].textContent = 'O';
+        const score = minimax(board, 'X');
+        cells[move].textContent = '';
+  
+        if (score > bestScore) {
+          bestScore = score;
+          bestMove = move;
+        }
+      }
+    } else {
+      bestScore = Infinity;
+      for (const move of availableCells) {
+        cells[move].textContent = 'X';
+        const score = minimax(board, 'O');
+        cells[move].textContent = '';
+  
+        if (score < bestScore) {
+          bestScore = score;
+          bestMove = move;
+        }
+      }
+    }
+  
+    return bestMove;
+  }
+  
+  function checkWinner(player) {
+    const lines = [
+      [0, 1, 2],
+      [3, 4, 5],
+      [6, 7, 8],
+      [0, 3, 6],
+      [1, 4, 7],
+      [2, 5, 8],
+      [0, 4, 8],
+      [2, 4, 6],
+    ];
+  
+    for (const line of lines) {
+      const [a, b, c] = line;
+      if (cells[a].textContent === player && cells[b].textContent === player && cells[c].textContent === player) {
+        return true;
+      }
+    }
+  
+    return false;
+  }
 
 function updateMessage() {
     const messageContainer = document.querySelector('.message');
